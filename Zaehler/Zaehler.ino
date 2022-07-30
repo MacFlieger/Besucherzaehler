@@ -16,7 +16,7 @@ Version 0.2
 
 // Konstanten
 #define PIN_U A0  // Eingangs-Pin zur Spannungsmessung
-#define PIN_LS D3 // Eingangs-Pin für die Lichtschranke
+#define PIN_LS D3  // Eingangs-Pin für die Lichtschranke (D3=GPIO0)
 
 // OLED-Display
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -27,6 +27,8 @@ Version 0.2
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void setup() {
+  // Pins initialisieren
+  pinMode(PIN_LS,INPUT_PULLUP);
   // OLED initialisieren
   display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
   display.cp437(true);         // Use full 256 char 'Code Page 437' font
@@ -39,14 +41,19 @@ void setup() {
 
 void loop() {
   // Spannung auslesen
-  float u=(analogRead(A0)/1023.)*3.3*1.9;
+  float u=(analogRead(PIN_U)/1023.)*3.3*1.9;
+  // Lichtschranke auslesen
+  boolean ls=digitalRead(PIN_LS);
   // Maske ausgeben
   display.clearDisplay();
   display.drawLine(0,54,127,54,WEISS);
-  // Spannung ausgeben
+  // LS-Zustand ausgeben
   display.setCursor(0,56);
+  display.print(ls?F("Blockiert"):F("Frei"));
+  // Spannung ausgeben
+  display.setCursor(92,56);
   display.print(u);
-  display.println(F(" V"));
+  display.print(F(" V"));
   // Display aktualisieren
   display.display();
   delay(500);
