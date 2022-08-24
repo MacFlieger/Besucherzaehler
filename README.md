@@ -21,6 +21,15 @@ Im Ordner "Schaltung" sind die KiCad-Dateien und der aktuelle Schaltplan als PDF
 
 Im Ordner "Zaehler" ist die aktuelle Software gespeichert. Hauptprogramm ist "Zaehler.ino"
 
+## Aufteilung des Bildschirmes
+
+Gesamtgröße 128x64 Pixel
+
+- Zeile 53-55 (3px hoch): Trennlinie 
+- Zeile 56-63 (8px hoch): Statusanzeige
+	- Spalte 0-7 (8px breit): Zustand der Lichtschranke
+	- Spalte 92-127 (6char=36Pixel breit): Anzeige der Spannung
+
 ## Nützliches
 
 Tabelle der Sonderzeichen bei Wikipedia  

@@ -1,7 +1,7 @@
 /**************************************************************************
 Besucherzähler für die Bibi Wulfen
 
-Version 0.3
+Version 0.4
 (c) 2022 Jörg Skapski, Markus Soick
 **************************************************************************/
 
@@ -12,7 +12,7 @@ Version 0.3
 #include <Adafruit_SSD1306.h>
 
 // Version
-#define VERSION "(c) 2022, v0.3"
+#define VERSION "(c) 2022, v0.4"
 
 // Konstanten
 #define PIN_U A0  // Eingangs-Pin zur Spannungsmessung
@@ -26,9 +26,13 @@ Version 0.3
 #define WEISS SSD1306_WHITE
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+// Globale Variablen
+unsigned long alteZeit=0;
+
 void setup() {
   // Pins initialisieren
   pinMode(PIN_LS,INPUT);
+
   // OLED initialisieren
   display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
   display.cp437(true);         // Use full 256 char 'Code Page 437' font
@@ -37,45 +41,18 @@ void setup() {
 
   // Startbildschirm
   startbild();
+
+  // Maske
+  ausgabeMaske();
+  ausgabeLS(digitalRead(PIN_LS));
+  ausgabeSpannung();
 }
 
 void loop() {
-  // Spannung auslesen
-  float u=(analogRead(PIN_U)/1023.)*3.3*1.91;
-  // Lichtschranke auslesen
-  boolean ls=digitalRead(PIN_LS);
-  // Maske ausgeben
-  display.clearDisplay();
-  display.drawLine(0,54,127,54,WEISS);
-  // LS-Zustand ausgeben
-  display.setCursor(0,56);
-  display.print(ls?F("Blockiert"):F("Frei"));
-  // Spannung ausgeben
-  display.setCursor(92,56);
-  display.print(u);
-  display.print(F(" V"));
-  // Display aktualisieren
-  display.display();
-  delay(500);
-}
-
-void startbild() {
-  // Anzeige des Startbildschirmes
-  display.setTextColor(SSD1306_WHITE);
-
-  display.setTextSize(2);
-  display.setCursor(12,0);
-  display.print(F("Besucher-"));
-  display.setCursor(24,16);
-  display.print(F("z\x84hler"));
-  display.setTextSize(1);
-  display.setCursor(0,40);
-  display.println(F(VERSION));
-  display.println(F("J\x94rg Skapski"));
-  display.println(F("Markus Soick"));
-  display.display();
-
-  delay(5000);
-  display.clearDisplay();
-  display.display();
+  // jede Sekunde die Anzeige der Spannung aktualisieren
+  unsigned long zeit=millis();
+  if (zeit<alteZeit || zeit-alteZeit>1000) {
+    alteZeit=zeit;
+    ausgabeSpannung();
+  }
 }
