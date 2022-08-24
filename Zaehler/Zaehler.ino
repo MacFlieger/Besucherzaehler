@@ -1,7 +1,7 @@
 /**************************************************************************
 Besucherzähler für die Bibi Wulfen
 
-Version 0.2
+Version 0.3
 (c) 2022 Jörg Skapski, Markus Soick
 **************************************************************************/
 
@@ -12,11 +12,11 @@ Version 0.2
 #include <Adafruit_SSD1306.h>
 
 // Version
-#define VERSION "(c) 2022, v0.2"
+#define VERSION "(c) 2022, v0.3"
 
 // Konstanten
 #define PIN_U A0  // Eingangs-Pin zur Spannungsmessung
-#define PIN_LS D3  // Eingangs-Pin für die Lichtschranke (D3=GPIO0)
+#define PIN_LS D5  // Eingangs-Pin für die Lichtschranke (D3=GPIO0)
 
 // OLED-Display
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -28,7 +28,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void setup() {
   // Pins initialisieren
-  pinMode(PIN_LS,INPUT_PULLUP);
+  pinMode(PIN_LS,INPUT);
   // OLED initialisieren
   display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
   display.cp437(true);         // Use full 256 char 'Code Page 437' font
@@ -41,7 +41,7 @@ void setup() {
 
 void loop() {
   // Spannung auslesen
-  float u=(analogRead(PIN_U)/1023.)*3.3*1.9;
+  float u=(analogRead(PIN_U)/1023.)*3.3*1.91;
   // Lichtschranke auslesen
   boolean ls=digitalRead(PIN_LS);
   // Maske ausgeben
