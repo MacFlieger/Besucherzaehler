@@ -3,6 +3,7 @@ Unterprogramme für die Ausgabe auf dem OLED-Display
 
 startbild: Anzeige des Startbildes
 ausgabeMaske: Anzeige der Maske
+ausgabeZaehler: Anzeige der aktuellen Besucherzahl
 ausgabeLS: Anzeige des Zustandes der Lichtschranke
 ausgabeSpannung: Anzeige der Spannung
 
@@ -11,7 +12,6 @@ ausgabeSpannung: Anzeige der Spannung
 void startbild() {
   // Anzeige des Startbildschirmes
   display.setTextColor(SSD1306_WHITE);
-
   display.setTextSize(2);
   display.setCursor(12,0);
   display.print(F("Besucher-"));
@@ -29,9 +29,24 @@ void startbild() {
   display.display();
 }
 
-void ausgabeMaske() {
+void ausgabeMaske(boolean alles) {
   // Anzeige der Maske
   display.drawLine(0,54,127,54,WEISS);
+  // Anzeige der Inhalte
+  if (alles) {
+    ausgabeZaehler();  
+    ausgabeLS(digitalRead(PIN_LS));
+    ausgabeSpannung();
+  }
+  display.display();
+}
+
+void ausgabeZaehler() {
+  display.fillRect(0,0,127,15,SSD1306_BLACK);
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(2);
+  display.setCursor(0,0);
+  display.print(zaehler);
   display.display();
 }
 
@@ -49,6 +64,8 @@ void ausgabeSpannung() {
   // Anzeige der Spannung
   display.fillRect(92,56,127,63,SSD1306_BLACK);
   float u=(analogRead(PIN_U)/1023.)*3.3*1.91;
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
   display.setCursor(92,56);
   display.print(u);
   display.print(F(" V"));

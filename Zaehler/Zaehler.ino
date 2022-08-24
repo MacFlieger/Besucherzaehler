@@ -1,7 +1,7 @@
 /**************************************************************************
 Besucherzähler für die Bibi Wulfen
 
-Version 0.4
+Version 0.5
 (c) 2022 Jörg Skapski, Markus Soick
 **************************************************************************/
 
@@ -12,11 +12,11 @@ Version 0.4
 #include <Adafruit_SSD1306.h>
 
 // Version
-#define VERSION "(c) 2022, v0.4"
+#define VERSION "(c) 2022, v0.5"
 
 // Konstanten
 #define PIN_U A0  // Eingangs-Pin zur Spannungsmessung
-#define PIN_LS D5  // Eingangs-Pin für die Lichtschranke (D3=GPIO0)
+#define PIN_LS D5  // Eingangs-Pin für die Lichtschranke (D5=GPIO14)
 
 // OLED-Display
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -27,7 +27,21 @@ Version 0.4
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // Globale Variablen
-unsigned long alteZeit=0;
+unsigned long timerZeit=0;
+unsigned long lsZeit=0;
+unsigned long zaehler=0;
+boolean zaehlerneu=false;
+
+void ICACHE_RAM_ATTR lsUnterbrechung() {
+  // die Lichtschranke wurde unterbrochen
+  unsigned long zeit=millis();
+  // Prellen der LS unterdrücken
+  if (zeit<lsZeit || zeit-lsZeit>1) {
+    zaehler++;
+    zaehlerneu=true;
+    lsZeit=zeit;
+  }
+}
 
 void setup() {
   // Pins initialisieren
@@ -42,17 +56,24 @@ void setup() {
   // Startbildschirm
   startbild();
 
-  // Maske
-  ausgabeMaske();
-  ausgabeLS(digitalRead(PIN_LS));
-  ausgabeSpannung();
+  // Maske mit Inhalten ausgeben
+  ausgabeMaske(true);
+
+  // Interrupt für die Lichtschranke aktivieren
+  attachInterrupt(digitalPinToInterrupt(PIN_LS), lsUnterbrechung, FALLING);
+
 }
 
 void loop() {
   // jede Sekunde die Anzeige der Spannung aktualisieren
   unsigned long zeit=millis();
-  if (zeit<alteZeit || zeit-alteZeit>1000) {
-    alteZeit=zeit;
+  if (zeit<timerZeit || zeit-timerZeit>1000) {
+    timerZeit=zeit;
     ausgabeSpannung();
+  }
+  // auf Aktualisierung des Zählers prüfen
+  if (zaehlerneu) {
+    zaehlerneu=false;
+    ausgabeZaehler();
   }
 }
