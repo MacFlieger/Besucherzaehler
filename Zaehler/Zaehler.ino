@@ -1,7 +1,7 @@
 /**************************************************************************
 Besucherzähler für die Bibi Wulfen
 
-Version 0.5
+Version 0.6
 (c) 2022 Jörg Skapski, Markus Soick
 **************************************************************************/
 
@@ -12,7 +12,7 @@ Version 0.5
 #include <Adafruit_SSD1306.h>
 
 // Version
-#define VERSION "(c) 2022, v0.5"
+#define VERSION "(c) 2022, v0.6"
 
 // Konstanten
 #define PIN_U A0  // Eingangs-Pin zur Spannungsmessung
@@ -27,19 +27,31 @@ Version 0.5
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // Globale Variablen
-unsigned long timerZeit=0;
-unsigned long lsZeit=0;
-unsigned long zaehler=0;
-boolean zaehlerneu=false;
+unsigned long timerZeit=0;      // Zeit der letzten Timerausführung
+unsigned long lsZeit=0;         // Zeit der letzten LS-Unterbrechung
+unsigned long zaehler=0;        // Anzahl der Besucher
+boolean lsAenderung=false;      // Flag für die Aktualisierung des LS-Zustandes
+boolean zaehlerAenderung=false; // Flag für die Aktualisierung des Zählers
+boolean durchgang=false;        // Flag zum Halbieren der erfassten Durchgänge (Rein und Raus sind ein Besucher)
 
 void ICACHE_RAM_ATTR lsUnterbrechung() {
-  // die Lichtschranke wurde unterbrochen
-  unsigned long zeit=millis();
-  // Prellen der LS unterdrücken
-  if (zeit<lsZeit || zeit-lsZeit>1) {
-    zaehler++;
-    zaehlerneu=true;
-    lsZeit=zeit;
+  // die Lichtschranke hat den Zustand geändert
+  if (digitalRead(PIN_LS)) {
+    // die LS ist frei
+    lsAenderung=true;
+  }
+  else {
+    // die LS ist unterbrochen
+    lsAenderung=true;
+    unsigned long zeit=millis();
+    // Prellen der LS unterdrücken
+    if (zeit<lsZeit || zeit-lsZeit>1) {
+      durchgang=!durchgang;
+      if (!durchgang)
+        zaehler++;
+      zaehlerAenderung=true;
+      lsZeit=zeit;
+    }
   }
 }
 
@@ -60,7 +72,7 @@ void setup() {
   ausgabeMaske(true);
 
   // Interrupt für die Lichtschranke aktivieren
-  attachInterrupt(digitalPinToInterrupt(PIN_LS), lsUnterbrechung, FALLING);
+  attachInterrupt(digitalPinToInterrupt(PIN_LS), lsUnterbrechung, CHANGE);
 
 }
 
@@ -71,9 +83,12 @@ void loop() {
     timerZeit=zeit;
     ausgabeSpannung();
   }
-  // auf Aktualisierung des Zählers prüfen
-  if (zaehlerneu) {
-    zaehlerneu=false;
+  // evtl. Aktualisierung des Zustandes der Lichtschranke
+  if (lsAenderung) {
+    ausgabeLS();
+  }
+  // evtl. Aktualisierung des Zählers
+  if (zaehlerAenderung) {
     ausgabeZaehler();
   }
 }

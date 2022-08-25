@@ -35,23 +35,28 @@ void ausgabeMaske(boolean alles) {
   // Anzeige der Inhalte
   if (alles) {
     ausgabeZaehler();  
-    ausgabeLS(digitalRead(PIN_LS));
+    ausgabeLS();
     ausgabeSpannung();
   }
   display.display();
 }
 
 void ausgabeZaehler() {
+  zaehlerAenderung=false;
   display.fillRect(0,0,127,15,SSD1306_BLACK);
   display.setTextColor(SSD1306_WHITE);
   display.setTextSize(2);
-  display.setCursor(0,0);
+  if (durchgang)
+    display.fillCircle(5,7,3,SSD1306_WHITE);
+  display.setCursor(12,0);
   display.print(zaehler);
   display.display();
 }
 
-void ausgabeLS(boolean zustand) {
+void ausgabeLS() {
   // Anzeige des Zustandes der Lichtschranke
+  boolean zustand=digitalRead(PIN_LS);
+  lsAenderung=false;
   display.fillRect(0,56,7,63,SSD1306_BLACK);
   if (zustand)
     display.drawCircle(4,60,3,SSD1306_WHITE);
