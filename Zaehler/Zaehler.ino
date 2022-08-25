@@ -1,7 +1,7 @@
 /**************************************************************************
 Besucherzähler für die Bibi Wulfen
 
-Version 0.6
+Version 0.7
 (c) 2022 Jörg Skapski, Markus Soick
 **************************************************************************/
 
@@ -12,11 +12,12 @@ Version 0.6
 #include <Adafruit_SSD1306.h>
 
 // Version
-#define VERSION "(c) 2022, v0.6"
+#define VERSION "(c) 2022, v0.7"
 
 // Konstanten
-#define PIN_U A0  // Eingangs-Pin zur Spannungsmessung
-#define PIN_LS D5  // Eingangs-Pin für die Lichtschranke (D5=GPIO14)
+#define PIN_U A0        // Eingangs-Pin zur Spannungsmessung
+#define PIN_LS D5       // Eingangs-Pin für die Lichtschranke (D5=GPIO14)
+#define ZEITMINIMUM 200 // Minimalzeit in ms zwischen zwei Zählungen
 
 // OLED-Display
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -30,6 +31,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 unsigned long timerZeit=0;      // Zeit der letzten Timerausführung
 unsigned long lsZeit=0;         // Zeit der letzten LS-Unterbrechung
 unsigned long zaehler=0;        // Anzahl der Besucher
+unsigned long geblockt=0;       // Anzahl der geblockten Ereignisse
 boolean lsAenderung=false;      // Flag für die Aktualisierung des LS-Zustandes
 boolean zaehlerAenderung=false; // Flag für die Aktualisierung des Zählers
 boolean durchgang=false;        // Flag zum Halbieren der erfassten Durchgänge (Rein und Raus sind ein Besucher)
@@ -46,11 +48,20 @@ void ICACHE_RAM_ATTR lsUnterbrechung() {
     unsigned long zeit=millis();
     // Prellen der LS unterdrücken
     if (zeit<lsZeit || zeit-lsZeit>1) {
-      durchgang=!durchgang;
-      if (!durchgang)
-        zaehler++;
-      zaehlerAenderung=true;
-      lsZeit=zeit;
+      if (zeit-lsZeit<ZEITMINIMUM) {
+        // Zu kurze Zeit zwischen zwei Ereignissen, wird nicht gewertet
+        geblockt++;
+        zaehlerAenderung=true;
+        lsZeit=zeit;
+      }
+      else {
+        // Ereignis muss gezählt werden
+        durchgang=!durchgang;
+        if (!durchgang)
+          zaehler++;
+        zaehlerAenderung=true;
+        lsZeit=zeit;
+      }
     }
   }
 }

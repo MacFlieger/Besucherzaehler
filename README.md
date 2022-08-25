@@ -28,6 +28,7 @@ Gesamtgröße 128x64 Pixel
 - Zeile 0-15 (16px hoch): Besucheranzahl
 	- Spalte 0-11: Markierung für einen halben Besuchers (nur Eintritt)
 	- Spalte 12-127: Anzeige der Besucheranzahl
+- Zeile 45-52 (8px hoch): Anzahl der geblockten Ereignisse
 - Zeile 53-55 (3px hoch): Trennlinie 
 - Zeile 56-63 (8px hoch): Statusanzeige
 	- Spalte 0-7 (8px breit): Zustand der Lichtschranke
